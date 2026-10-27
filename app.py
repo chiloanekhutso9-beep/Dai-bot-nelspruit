@@ -52,8 +52,3 @@ def webhook():
 
 if __name__ == '__main__':
     app.run()
-    """
-
-After you paste, Render will auto-redeploy in 2 mins and then your link will look BEAUTIFUL instead of just text.
-
-Tell me when you've pasted — I'll check if it updated!
