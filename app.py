@@ -37,32 +37,43 @@ def home():
 
 @app.route('/webhook', methods=['GET','POST'])
 def webhook():
+def webhook():
     if request.method == 'GET':
-        # For Meta verification
         return request.args.get('hub.challenge', '')
 
-    # POST - WhatsApp message received
     data = request.get_json()
     try:
-        msg_obj = data['entry'][0]['changes'][0]['value']['messages'][0]
-        phone = msg_obj['from']
-        text = msg_obj['text']['body'].lower()
+        entry = data['entry'][0]['changes'][0]['value']
+        if 'messages' in entry:
+            msg = entry['messages'][0]
+            phone = msg['from']
+            text = msg.get('text', {}).get('body', '').lower()
 
-        if any(k in text for k in ['1win','link','bonus','register']):
-            reply = "🔥 1WIN SA 🇿🇦\n✅ No VPN needed\n👉 https://1win.com/?p=zxlm\n\n1. Open in Chrome\n2. Register ZAR\n3. Deposit Ozow/Capitec\n\nType HELP if link won't open\n18+ Play responsibly"
+            reply = """🤖 *DAI BOT NELSPRUIT* 🔥
+
+Here is your link 👇
+👉 https://1win.com/?p=zxlm
+
+✅ No VPN - Open in Chrome
+✅ Register ZAR
+✅ Deposit Ozow / Capitec
+
+Reply HELP if blocked
+Built by Khutso | Mbombela"""
+
+            if 'help' in text:
+                reply = "Link blocked? WhatsApp > 3 dots > Open in browser > Chrome. Turn off MTN Safe Browsing. Then: https://1win.com/?p=zxlm"
+
             send_whatsapp(phone, reply)
-        elif 'help' in text:
-            send_whatsapp(phone, "Link fix: In WhatsApp tap 3 dots top right -> Open in browser -> Chrome. Still blocked? Turn off MTN Safe Browsing in MyMTN app.")
-    except:
-        pass
-
+    except Exception as e:
+        print("Error:", e)
     return Response(status=200)
 
 def send_whatsapp(to, body):
+    import os, requests
     token = os.getenv('WHATSAPP_TOKEN')
     phone_id = os.getenv('PHONE_ID')
-    if not token or not phone_id:
-        return
+    if not token or not phone_id: return
     requests.post(f"https://graph.facebook.com/v19.0/{phone_id}/messages",
         headers={"Authorization": f"Bearer {token}"},
         json={"messaging_product":"whatsapp","to":to,"type":"text","text":{"body":body}})
